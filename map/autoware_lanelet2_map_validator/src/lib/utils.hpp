@@ -18,6 +18,8 @@
 #include <lanelet2_validation/Validation.h>
 #include <lanelet2_validation/ValidatorFactory.h>
 
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -78,7 +80,10 @@ void checkPrimitivesType(
   }
 }
 
+// non-template functions should be defined below here
+lanelet::Point2d get_linestring_midpoint_2d(const ConstLineString3d & linestring);
 }  // namespace validation
+
 }  // namespace autoware
 }  // namespace lanelet
 
