@@ -16,11 +16,15 @@
 
 #include "lib/utils.hpp"
 
+#include <Eigen/Core>
+
 #include <lanelet2_core/LaneletMap.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -78,26 +82,55 @@ bool TrafficLightFacingValidator::is_red_yellow_green_traffic_light(
            lanelet::AttributeValueString::RedYellowGreen;
 }
 
+lanelet::LineString3d get_starting_edge_from_lanelet(
+  const lanelet::ConstLanelet & lanelet, const lanelet::ConstLineString3d & reference)
+{
+  Eigen::Vector3d front_l = lanelet.leftBound().front().basicPoint();
+  Eigen::Vector3d back_l = lanelet.leftBound().back().basicPoint();
+
+  Eigen::Vector3d front_r = lanelet.rightBound().front().basicPoint();
+  Eigen::Vector3d back_r = lanelet.rightBound().back().basicPoint();
+
+  Eigen::Vector3d ref_1 = reference.front().basicPoint();
+  Eigen::Vector3d ref_2 = reference.back().basicPoint();
+
+  auto norm_sum = [ref_1, ref_2](const Eigen::Vector3d & vec1, const Eigen::Vector3d & vec2) {
+    return (vec1 - ref_1).norm() + (vec2 - ref_2).norm();
+  };
+
+  double front_min = std::min(norm_sum(front_l, front_r), norm_sum(front_r, front_l));
+  double back_min = std::min(norm_sum(back_l, back_r), norm_sum(back_r, back_l));
+
+  Points3d points;
+  if (front_min <= back_min) {
+    points.push_back(Point3d(front_l.x(), front_l.y(), front_l.z()));
+    points.push_back(Point3d(front_r.x(), front_r.y(), front_r.z()));
+  } else {
+    points.push_back(Point3d(back_l.x(), back_l.y(), back_l.z()));
+    points.push_back(Point3d(back_r.x(), back_r.y(), back_r.z()));
+  }
+
+  return LineString3d(reference.id(), points);  // same id for debug reasons
+}
+
 lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_facing(
   const lanelet::LaneletMap & map)
 {
   lanelet::validation::Issues issues;
 
   // Get all red_yellow_green traffic lights with a map of flags
-  std::map<lanelet::Id, bool> tl_has_corresponding_stop_line;
-  std::map<lanelet::Id, bool> tl_is_facing_correct;
+  std::map<lanelet::Id, bool> tl_has_been_judged_correct;
+  std::map<lanelet::Id, bool> tl_has_been_judged_wrong;
 
   for (const lanelet::ConstLineString3d & linestring : map.lineStringLayer) {
     if (is_red_yellow_green_traffic_light(linestring)) {
       std::cout << "id: " << linestring.id() << std::endl;
-      tl_has_corresponding_stop_line.insert({linestring.id(), false});
-      tl_is_facing_correct.insert({linestring.id(), false});
+      tl_has_been_judged_correct.insert({linestring.id(), false});
+      tl_has_been_judged_wrong.insert({linestring.id(), false});
     }
   }
 
-  // Get all regulatory_elements that refers to RedYellowGreen traffic_lights and also refers to
-  // stop_lines Then, calculate the cross product between (stop_line -> traffic_light) and
-  // (traffic_light_line_direction)
+  //
   for (const lanelet::RegulatoryElementConstPtr & reg_elem : map.regulatoryElementLayer) {
     if (
       reg_elem->attribute(lanelet::AttributeName::Subtype).value() !=
@@ -117,10 +150,10 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
     }
   }
 
-  std::cout << "tl_ids.size() = " << tl_has_corresponding_stop_line.size() << std::endl;
+  std::cout << "tl_ids.size() = " << tl_has_been_judged_correct.size() << std::endl;
 
   // Digest the stop line non-existance and the traffic light facing error to issues
-  for (const auto & entry : tl_has_corresponding_stop_line) {
+  for (const auto & entry : tl_has_been_judged_correct) {
     lanelet::Id traffic_light_id = entry.first;
     bool has_stop_line = entry.second;
 
@@ -128,7 +161,7 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString,
         traffic_light_id, "Cannot find a corresponding stop line to this traffic light.");
-    } else if (tl_is_facing_correct.at(traffic_light_id) == false) {
+    } else if (tl_has_been_judged_wrong.at(traffic_light_id) == false) {
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString,
         traffic_light_id, "The traffic light facing seems to be opposite.");

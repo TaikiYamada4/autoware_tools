@@ -34,6 +34,8 @@ private:
   lanelet::ConstLineString3d get_stop_line_from_reg_elem(
     const lanelet::RegulatoryElementConstPtr & reg_elem);
   bool is_red_yellow_green_traffic_light(const lanelet::ConstLineString3d & linestring);
+  lanelet::ConstLineString3d get_starting_edge_from_lanelet(
+    const lanelet::ConstLanelet & lanelet, const lanelet::ConstLineString3d & reference);
   lanelet::validation::Issues check_traffic_light_facing(const lanelet::LaneletMap & map);
 };
 }  // namespace validation
