@@ -1,4 +1,4 @@
-// Copyright 2023 Autoware Foundation
+// Copyright 2024 Autoware Foundation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 
 #ifndef LIB__UTILS_HPP_
 #define LIB__UTILS_HPP_
+
+#include <Eigen/Core>
 
 #include <lanelet2_validation/Validation.h>
 #include <lanelet2_validation/ValidatorFactory.h>
@@ -77,6 +79,8 @@ void checkPrimitivesType(
     }
   }
 }
+
+Eigen::Vector3d linestring_to_vector3d(const lanelet::ConstLineString3d linestring);
 
 }  // namespace validation
 }  // namespace autoware
