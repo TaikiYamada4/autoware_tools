@@ -185,7 +185,7 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
             issues.emplace_back(
               lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString,
               refers_linestring.id(),
-              "Lanelets referring this traffic_light has several divergent starting points");
+              "Lanelets referring this traffic_light have several divergent starting lines");
           }
         }
         Eigen::Vector3d traffic_light =
@@ -200,7 +200,7 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
       } else {
         issues.emplace_back(
           lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString,
-          refers_linestring.id(),
+          reg_elem->id(),
           "Regulatory element of traffic light must be referred by at least one lanelet");
         continue;
       }
@@ -219,7 +219,7 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
     if (!tl_has_been_judged_as_correct[id] && !tl_has_been_judged_as_wrong[id]) {
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString, id,
-        "Refers of traffic light regulatory element must have type of traffic_light.");
+        "This traffic light hasn't been referred to any regulatory element.");
     } else if (!tl_has_been_judged_as_correct[id] && tl_has_been_judged_as_wrong[id]) {
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString, id,
