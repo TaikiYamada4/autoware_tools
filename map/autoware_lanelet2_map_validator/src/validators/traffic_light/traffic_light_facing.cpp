@@ -48,6 +48,107 @@ lanelet::validation::Issues TrafficLightFacingValidator::operator()(const lanele
   return issues;
 }
 
+lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_facing(
+  const lanelet::LaneletMap & map)
+{
+  lanelet::validation::Issues issues;
+
+  // Get all red_yellow_green traffic lights with a std::map of flags
+  std::map<lanelet::Id, bool> tl_has_been_judged_as_correct;
+  std::map<lanelet::Id, bool> tl_has_been_judged_as_wrong;
+
+  for (const lanelet::ConstLineString3d & linestring : map.lineStringLayer) {
+    if (is_red_yellow_green_traffic_light(linestring)) {
+      tl_has_been_judged_as_correct.insert({linestring.id(), false});
+      tl_has_been_judged_as_wrong.insert({linestring.id(), false});
+    }
+  }
+
+  // Main validation procedure
+  for (const lanelet::RegulatoryElementConstPtr & reg_elem : map.regulatoryElementLayer) {
+    // Skip non traffic light regulatory elements
+    if (
+      reg_elem->attribute(lanelet::AttributeName::Subtype).value() !=
+      lanelet::AttributeValueString::TrafficLight) {
+      continue;
+    }
+
+    lanelet::ConstLineString3d stop_line = get_stop_line_from_reg_elem(reg_elem);
+
+    for (const lanelet::ConstLineString3d & refers_linestring :
+         reg_elem->getParameters<lanelet::ConstLineString3d>(lanelet::RoleName::Refers)) {
+      if (!is_red_yellow_green_traffic_light(refers_linestring)) {
+        continue;
+      }
+
+      const lanelet::ConstLanelets referring_lanelets =
+        collect_referring_lanelets(map, reg_elem->id());
+
+      // At least one lanelet should refer a traffic_light regulatory element
+      if (referring_lanelets.size() == 0) {
+        issues.emplace_back(
+          lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString,
+          reg_elem->id(),
+          "Regulatory element of traffic light must be referred by at least one lanelet");
+        continue;
+      }
+
+      // Assume the psuedo stop line from the first lanelet and check it is similar to the ones
+      // of other lanelets
+      lanelet::ConstLineString3d temp_pseudo_stop_line =
+        get_starting_edge_from_lanelet(referring_lanelets[0], stop_line);
+
+      Eigen::Vector3d pseudo_stop_line =
+        lanelet::autoware::validation::linestring_to_vector3d(temp_pseudo_stop_line);
+
+      for (size_t i = 1; i < referring_lanelets.size(); i++) {
+        Eigen::Vector3d comparing_line = lanelet::autoware::validation::linestring_to_vector3d(
+          get_starting_edge_from_lanelet(referring_lanelets[i], stop_line));
+        double cosine_angle =
+          pseudo_stop_line.dot(comparing_line) / (pseudo_stop_line.norm() * comparing_line.norm());
+        if (cosine_angle < 0) {
+          issues.emplace_back(
+            lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString,
+            refers_linestring.id(),
+            "Lanelets referring this traffic_light have several divergent starting lines");
+        }
+      }
+
+      // A traffic light is facing correct if the inner product is positve to the psuedo stop line
+      Eigen::Vector3d traffic_light =
+        lanelet::autoware::validation::linestring_to_vector3d(refers_linestring);
+      double cosine_pseudo_stop_line_and_traffic_light =
+        pseudo_stop_line.dot(traffic_light) / (pseudo_stop_line.norm() * traffic_light.norm());
+      if (cosine_pseudo_stop_line_and_traffic_light > 0) {
+        tl_has_been_judged_as_correct[refers_linestring.id()] = true;
+      } else {
+        tl_has_been_judged_as_wrong[refers_linestring.id()] = true;
+      }
+    }
+  }
+
+  // Digest the stop line non-existance and the traffic light facing error to issues
+  for (const auto & entry : tl_has_been_judged_as_correct) {
+    lanelet::Id id = entry.first;
+
+    if (!tl_has_been_judged_as_correct[id] && !tl_has_been_judged_as_wrong[id]) {
+      issues.emplace_back(
+        lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString, id,
+        "This traffic light hasn't been referred to any regulatory element.");
+    } else if (!tl_has_been_judged_as_correct[id] && tl_has_been_judged_as_wrong[id]) {
+      issues.emplace_back(
+        lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString, id,
+        "The linestring direction seems to be wrong.");
+    } else if (tl_has_been_judged_as_correct[id] && tl_has_been_judged_as_wrong[id]) {
+      issues.emplace_back(
+        lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString, id,
+        "The linestring direction has been judged as both correct and wrong.");
+    }
+  }
+
+  return issues;
+}
+
 lanelet::ConstLineString3d TrafficLightFacingValidator::get_stop_line_from_reg_elem(
   const lanelet::RegulatoryElementConstPtr & reg_elem)
 {
@@ -124,98 +225,6 @@ lanelet::ConstLanelets TrafficLightFacingValidator::collect_referring_lanelets(
     }
   }
   return lanelet_group;
-}
-
-lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_facing(
-  const lanelet::LaneletMap & map)
-{
-  lanelet::validation::Issues issues;
-
-  // Get all red_yellow_green traffic lights with a map of flags
-  std::map<lanelet::Id, bool> tl_has_been_judged_as_correct;
-  std::map<lanelet::Id, bool> tl_has_been_judged_as_wrong;
-
-  for (const lanelet::ConstLineString3d & linestring : map.lineStringLayer) {
-    if (is_red_yellow_green_traffic_light(linestring)) {
-      tl_has_been_judged_as_correct.insert({linestring.id(), false});
-      tl_has_been_judged_as_wrong.insert({linestring.id(), false});
-    }
-  }
-
-  for (const lanelet::RegulatoryElementConstPtr & reg_elem : map.regulatoryElementLayer) {
-    if (
-      reg_elem->attribute(lanelet::AttributeName::Subtype).value() !=
-      lanelet::AttributeValueString::TrafficLight) {
-      continue;
-    }
-    lanelet::ConstLineString3d stop_line = get_stop_line_from_reg_elem(reg_elem);
-
-    for (const lanelet::ConstLineString3d & refers_linestring :
-         reg_elem->getParameters<lanelet::ConstLineString3d>(lanelet::RoleName::Refers)) {
-      if (!is_red_yellow_green_traffic_light(refers_linestring)) {
-        continue;
-      }
-
-      // Check all referring lanelets has a similar pseudo stop line
-      const lanelet::ConstLanelets referring_lanelets =
-        collect_referring_lanelets(map, reg_elem->id());
-      if (referring_lanelets.size() > 0) {
-        lanelet::ConstLineString3d temp_pseudo_stop_line =
-          get_starting_edge_from_lanelet(referring_lanelets[0], stop_line);
-        Eigen::Vector3d pseudo_stop_line =
-          lanelet::autoware::validation::linestring_to_vector3d(temp_pseudo_stop_line);
-
-        for (size_t i = 1; i < referring_lanelets.size(); i++) {
-          Eigen::Vector3d comparing_line = lanelet::autoware::validation::linestring_to_vector3d(
-            get_starting_edge_from_lanelet(referring_lanelets[i], stop_line));
-          double cosine_angle = pseudo_stop_line.dot(comparing_line) /
-                                (pseudo_stop_line.norm() * comparing_line.norm());
-          if (cosine_angle < 0) {
-            issues.emplace_back(
-              lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString,
-              refers_linestring.id(),
-              "Lanelets referring this traffic_light have several divergent starting lines");
-          }
-        }
-        Eigen::Vector3d traffic_light =
-          lanelet::autoware::validation::linestring_to_vector3d(refers_linestring);
-        double cosine_pseudo_stop_line_and_traffic_light =
-          pseudo_stop_line.dot(traffic_light) / (pseudo_stop_line.norm() * traffic_light.norm());
-        if (cosine_pseudo_stop_line_and_traffic_light > 0) {
-          tl_has_been_judged_as_correct[refers_linestring.id()] = true;
-        } else {
-          tl_has_been_judged_as_wrong[refers_linestring.id()] = true;
-        }
-      } else {
-        issues.emplace_back(
-          lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString,
-          reg_elem->id(),
-          "Regulatory element of traffic light must be referred by at least one lanelet");
-        continue;
-      }
-    }
-  }
-
-  // Digest the stop line non-existance and the traffic light facing error to issues
-  for (const auto & entry : tl_has_been_judged_as_correct) {
-    lanelet::Id id = entry.first;
-
-    if (!tl_has_been_judged_as_correct[id] && !tl_has_been_judged_as_wrong[id]) {
-      issues.emplace_back(
-        lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString, id,
-        "This traffic light hasn't been referred to any regulatory element.");
-    } else if (!tl_has_been_judged_as_correct[id] && tl_has_been_judged_as_wrong[id]) {
-      issues.emplace_back(
-        lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString, id,
-        "The linestring direction seems to be wrong.");
-    } else if (tl_has_been_judged_as_correct[id] && tl_has_been_judged_as_wrong[id]) {
-      issues.emplace_back(
-        lanelet::validation::Severity::Warning, lanelet::validation::Primitive::LineString, id,
-        "The linestring direction has been judged as both correct and wrong.");
-    }
-  }
-
-  return issues;
 }
 
 }  // namespace validation
