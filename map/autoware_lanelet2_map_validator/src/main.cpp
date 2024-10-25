@@ -54,8 +54,8 @@ Validators parse_validators(const json & json_data)
     for (const auto & validator : requirement["validators"]) {
       ValidatorInfo info;
 
-      if (validator.contains("prerequisite")) {
-        for (const auto & prereq : validator["prerequisite"]) {
+      if (validator.contains("prerequisites")) {
+        for (const auto & prereq : validator["prerequisites"]) {
           info.prerequisites.push_back(prereq["name"]);
           if (prereq.contains("forgive_warnings")) {
             info.forgive_warnings[prereq["name"]] = prereq["forgive_warnings"];
