@@ -62,7 +62,6 @@ lanelet::ConstLineString3d TrafficLightFacingValidator::get_stop_line_from_reg_e
       ref_line.hasAttribute(lanelet::AttributeName::Type) &&
       ref_line.attribute(lanelet::AttributeName::Type).value() ==
         lanelet::AttributeValueString::StopLine) {
-      std::cout << "stop_line ID: " << ref_line.id() << std::endl;
       return ref_line;
     }
   }
@@ -138,7 +137,6 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
 
   for (const lanelet::ConstLineString3d & linestring : map.lineStringLayer) {
     if (is_red_yellow_green_traffic_light(linestring)) {
-      std::cout << "id: " << linestring.id() << std::endl;
       tl_has_been_judged_as_correct.insert({linestring.id(), false});
       tl_has_been_judged_as_wrong.insert({linestring.id(), false});
     }
@@ -150,8 +148,6 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
       lanelet::AttributeValueString::TrafficLight) {
       continue;
     }
-    std::cout << "-------" << std::endl;
-    std::cout << "Found traffic light regulatory element with ID: " << reg_elem->id() << std::endl;
     lanelet::ConstLineString3d stop_line = get_stop_line_from_reg_elem(reg_elem);
 
     for (const lanelet::ConstLineString3d & refers_linestring :
@@ -159,7 +155,6 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
       if (!is_red_yellow_green_traffic_light(refers_linestring)) {
         continue;
       }
-      std::cout << "traffic_light ID: " << refers_linestring.id() << std::endl;
 
       // Check all referring lanelets has a similar pseudo stop line
       const lanelet::ConstLanelets referring_lanelets =
@@ -169,13 +164,7 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
           get_starting_edge_from_lanelet(referring_lanelets[0], stop_line);
         Eigen::Vector3d pseudo_stop_line =
           lanelet::autoware::validation::linestring_to_vector3d(temp_pseudo_stop_line);
-        Eigen::Vector3d temp_stop_line =
-          lanelet::autoware::validation::linestring_to_vector3d(stop_line);
-        std::cout << "Real stop_line: (" << temp_stop_line.x() << ", " << temp_stop_line.y() << ", "
-                  << temp_stop_line.z() << ")" << std::endl;
-        std::cout << "Pseudo stop_line(id=" << temp_pseudo_stop_line.id() << "): ("
-                  << pseudo_stop_line.x() << ", " << pseudo_stop_line.y() << ", "
-                  << pseudo_stop_line.z() << ")" << std::endl;
+
         for (size_t i = 1; i < referring_lanelets.size(); i++) {
           Eigen::Vector3d comparing_line = lanelet::autoware::validation::linestring_to_vector3d(
             get_starting_edge_from_lanelet(referring_lanelets[i], stop_line));
@@ -206,11 +195,6 @@ lanelet::validation::Issues TrafficLightFacingValidator::check_traffic_light_fac
       }
     }
   }
-
-  std::cout << "tl_has_been_judged_as_correct.size() = " << tl_has_been_judged_as_correct.size()
-            << std::endl;
-  std::cout << "tl_has_been_judged_as_wrong.size() = " << tl_has_been_judged_as_wrong.size()
-            << std::endl;
 
   // Digest the stop line non-existance and the traffic light facing error to issues
   for (const auto & entry : tl_has_been_judged_as_correct) {
