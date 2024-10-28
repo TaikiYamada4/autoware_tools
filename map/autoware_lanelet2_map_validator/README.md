@@ -69,32 +69,34 @@ The JSON file input should follow the structure like this example.
   "version": "0.1.0",
   "requirements": [
     {
-      "id": "example-01-01",
+      "id": "vm-04-01",
       "validators": [
         {
           "name": "mapping.crosswalk.missing_regulatory_elements"
         },
         {
-          "name": "mapping.crosswalk.regulatory_element_details"
+          "name": "mapping.crosswalk.regulatory_element_details",
+          "prerequisites": [
+            {
+              "name": "mapping.crosswalk.missing_regulatory_elements"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "example-01-02",
+      "id": "vm-05-01",
       "validators": [
         {
           "name": "mapping.traffic_light.missing_regulatory_elements"
         },
         {
-          "name": "mapping.traffic_light.regulatory_element_details"
-        }
-      ]
-    },
-    {
-      "id": "example-01-03",
-      "validators": [
-        {
-          "name": "mapping.stop_line.missing_regulatory_elements"
+          "name": "mapping.traffic_light.regulatory_element_details",
+          "prerequisites": [
+            {
+              "name": "mapping.traffic_light.missing_regulatory_elements"
+            }
+          ]
         }
       ]
     }
@@ -121,7 +123,7 @@ When the `input_requirements` is thrown to `autoware_lanelet2_map_validator`, it
 {
   "requirements": [
     {
-      "id": "example-01-01",
+      "id": "vm-04-01",
       "passed": false,
       "validators": [
         {
@@ -155,13 +157,26 @@ When the `input_requirements` is thrown to `autoware_lanelet2_map_validator`, it
           "passed": false
         },
         {
+          "issues": [
+            {
+              "id": 0,
+              "message": "Prerequisites didn't pass",
+              "primitive": "primitive",
+              "severity": "Error"
+            }
+          ],
           "name": "mapping.crosswalk.regulatory_element_details",
-          "passed": true
+          "passed": false,
+          "prerequisites": [
+            {
+              "name": "mapping.crosswalk.missing_regulatory_elements"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "example-01-02",
+      "id": "vm-05-01",
       "passed": false,
       "validators": [
         {
@@ -196,17 +211,12 @@ When the `input_requirements` is thrown to `autoware_lanelet2_map_validator`, it
             }
           ],
           "name": "mapping.traffic_light.regulatory_element_details",
-          "passed": false
-        }
-      ]
-    },
-    {
-      "id": "example-01-03",
-      "passed": true,
-      "validators": [
-        {
-          "name": "mapping.stop_line.missing_regulatory_elements",
-          "passed": true
+          "passed": false,
+          "prerequisites": [
+            {
+              "name": "mapping.traffic_light.missing_regulatory_elements"
+            }
+          ]
         }
       ]
     }
