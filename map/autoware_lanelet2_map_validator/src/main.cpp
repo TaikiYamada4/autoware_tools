@@ -283,34 +283,39 @@ uint64_t summarize_validator_results(json & json_data)
   return total_count;
 }
 
-int new_process_requirements(
+int process_requirements(
   json json_data, const lanelet::autoware::validation::MetaConfig & validator_config)
 {
   std::vector<lanelet::validation::DetectedIssues> issues;
   lanelet::autoware::validation::MetaConfig temp_validator_config = validator_config;
 
+  // List up validators in order
   Validators validators = parse_validators(json_data);
   auto [validation_queue, remaining_validators] = create_validation_queue(validators);
 
-  // temp print validation_queue
-  for (const auto & validation_name : validation_queue) {
-    std::cout << validation_name << std::endl;
-  }
+  // Note validators that cannot be run from the start
   std::vector<lanelet::validation::DetectedIssues> unused_validator_issues =
     descript_unused_validators_to_json(json_data, remaining_validators);
   lanelet::autoware::validation::appendIssues(issues, std::move(unused_validator_issues));
+
+  // Main validation process
   for (const auto & validator_name : validation_queue) {
     temp_validator_config.command_line_config.validationConfig.checksFilter = validator_name;
+
+    // Check prerequisites are OK
     std::vector<lanelet::validation::DetectedIssues> prerequisite_failure_issues =
       check_prerequisite_completion(json_data, validators, validator_name);
     lanelet::autoware::validation::appendIssues(issues, std::move(prerequisite_failure_issues));
     if (prerequisite_failure_issues.size() > 0) {
       continue;
     }
+
+    // Validate map
     std::vector<lanelet::validation::DetectedIssues> temp_issues =
       lanelet::autoware::validation::validateMap(temp_validator_config);
-    json & validator_json = find_validator_block(json_data, validator_name);
 
+    // Add validation results to the json data
+    json & validator_json = find_validator_block(json_data, validator_name);
     if (temp_issues.size() == 0) {
       validator_json["passed"] = true;
       continue;
@@ -343,9 +348,11 @@ int new_process_requirements(
     lanelet::autoware::validation::appendIssues(issues, std::move(temp_issues));
   }
 
+  // Show results
   uint64_t num_issues = summarize_validator_results(json_data);
   lanelet::validation::printAllIssues(issues);
 
+  // Save results
   if (!validator_config.output_file_path.empty()) {
     std::string file_name = validator_config.output_file_path + "/lanelet2_validation_results.json";
     std::ofstream output_file(file_name);
@@ -354,101 +361,6 @@ int new_process_requirements(
   }
 
   return (num_issues == 0) ? 0 : 1;
-}
-
-int process_requirements(
-  json json_config, const lanelet::autoware::validation::MetaConfig & validator_config)
-{
-  uint64_t warning_count = 0;
-  uint64_t error_count = 0;
-  lanelet::autoware::validation::MetaConfig temp_validator_config = validator_config;
-
-  for (auto & requirement : json_config["requirements"]) {
-    std::string id = requirement["id"];
-    bool requirement_passed = true;
-
-    std::vector<lanelet::validation::DetectedIssues> issues;
-    std::map<std::string, bool> temp_validation_results;
-
-    for (auto & validator : requirement["validators"]) {
-      std::string validator_name = validator["name"];
-      temp_validator_config.command_line_config.validationConfig.checksFilter = validator_name;
-
-      std::vector<lanelet::validation::DetectedIssues> temp_issues =
-        lanelet::autoware::validation::validateMap(temp_validator_config);
-
-      if (temp_issues.empty()) {
-        // Validator passed
-        temp_validation_results[validator_name] = true;
-        validator["passed"] = true;
-      } else {
-        // Validator failed
-        requirement_passed = false;
-        warning_count += temp_issues[0].warnings().size();
-        error_count += temp_issues[0].errors().size();
-        temp_validation_results[validator_name] = false;
-        validator["passed"] = false;
-
-        json issues_json;
-        for (const auto & issue : temp_issues[0].issues) {
-          json issue_json;
-          issue_json["severity"] = lanelet::validation::toString(issue.severity);
-          issue_json["primitive"] = lanelet::validation::toString(issue.primitive);
-          issue_json["id"] = issue.id;
-          issue_json["message"] = issue.message;
-          issues_json.push_back(issue_json);
-        }
-        validator["issues"] = issues_json;
-      }
-
-      lanelet::autoware::validation::appendIssues(issues, std::move(temp_issues));
-    }
-
-    std::cout << BOLD_ONLY << "[" << id << "] ";
-
-    if (requirement_passed) {
-      requirement["passed"] = true;
-      std::cout << BOLD_GREEN << "Passed" << FONT_RESET << std::endl;
-    } else {
-      requirement["passed"] = false;
-      std::cout << BOLD_RED << "Failed" << FONT_RESET << std::endl;
-    }
-
-    for (const auto & result : temp_validation_results) {
-      if (result.second) {
-        std::cout << "  - " << result.first << ": " << NORMAL_GREEN << "Passed" << FONT_RESET
-                  << std::endl;
-      } else {
-        std::cout << "  - " << result.first << ": " << NORMAL_RED << "Failed" << FONT_RESET
-                  << std::endl;
-      }
-    }
-    lanelet::validation::printAllIssues(issues);
-    std::cout << std::endl;
-  }
-
-  if (warning_count + error_count == 0) {
-    std::cout << BOLD_GREEN << "No issues were found from " << FONT_RESET
-              << validator_config.command_line_config.mapFile << std::endl;
-  } else {
-    if (warning_count > 0) {
-      std::cout << BOLD_YELLOW << "Total of " << warning_count << " warnings were found from "
-                << FONT_RESET << validator_config.command_line_config.mapFile << std::endl;
-    }
-    if (error_count > 0) {
-      std::cout << BOLD_RED << "Total of " << error_count << " errors were found from "
-                << FONT_RESET << validator_config.command_line_config.mapFile << std::endl;
-    }
-  }
-
-  if (!validator_config.output_file_path.empty()) {
-    std::string file_name = validator_config.output_file_path + "/lanelet2_validation_results.json";
-    std::ofstream output_file(file_name);
-    output_file << std::setw(4) << json_config;
-    std::cout << "Results are output to " << file_name << std::endl;
-  }
-
-  return (warning_count + error_count == 0) ? 0 : 1;
 }
 
 int main(int argc, char * argv[])
@@ -489,10 +401,11 @@ int main(int argc, char * argv[])
     std::ifstream input_file(meta_config.requirements_file);
     json json_config;
     input_file >> json_config;
-    return new_process_requirements(json_config, meta_config);
+    process_requirements(json_config, meta_config);
   } else {
     auto issues = lanelet::autoware::validation::validateMap(meta_config);
     lanelet::validation::printAllIssues(issues);
-    return static_cast<int>(issues.empty());
   }
+
+  return 0;
 }
