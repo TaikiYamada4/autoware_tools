@@ -296,11 +296,9 @@ int new_process_requirements(
   for (const auto & validation_name : validation_queue) {
     std::cout << validation_name << std::endl;
   }
-
   std::vector<lanelet::validation::DetectedIssues> unused_validator_issues =
     descript_unused_validators_to_json(json_data, remaining_validators);
   lanelet::autoware::validation::appendIssues(issues, std::move(unused_validator_issues));
-
   for (const auto & validator_name : validation_queue) {
     temp_validator_config.command_line_config.validationConfig.checksFilter = validator_name;
     std::vector<lanelet::validation::DetectedIssues> prerequisite_failure_issues =
@@ -312,6 +310,12 @@ int new_process_requirements(
     std::vector<lanelet::validation::DetectedIssues> temp_issues =
       lanelet::autoware::validation::validateMap(temp_validator_config);
     json & validator_json = find_validator_block(json_data, validator_name);
+
+    if (temp_issues.size() == 0) {
+      validator_json["passed"] = true;
+      continue;
+    }
+
     if (temp_issues[0].warnings().size() + temp_issues[0].errors().size() == 0) {
       validator_json["passed"] = true;
     } else {
