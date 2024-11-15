@@ -80,4 +80,6 @@ void checkPrimitivesType(
 }  // namespace autoware
 }  // namespace lanelet
 
+std::string snake_to_upper_camel(const std::string & snake_case);
+
 #endif  // LANELET2_MAP_VALIDATOR__UTILS_HPP_
