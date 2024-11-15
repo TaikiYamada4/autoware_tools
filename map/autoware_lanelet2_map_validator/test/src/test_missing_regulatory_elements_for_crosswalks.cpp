@@ -49,7 +49,7 @@ TEST_F(TestMissingRegulatoryElementsForCrosswalks, MissingRegulatoryElement)  //
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::Lanelet);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.MissingRegulatoryElements-001] No regulatory element refers to this "
+    "[Crosswalk.MissingRegulatoryElements-001] No regulatory element refers to this "
     "crosswalk.");
 }
 

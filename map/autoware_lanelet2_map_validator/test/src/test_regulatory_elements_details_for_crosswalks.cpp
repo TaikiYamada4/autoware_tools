@@ -49,7 +49,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, MissingRefers)  // NOLINT for
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::RegulatoryElement);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-001] Regulatory element of crosswalk must have "
+    "[Crosswalk.RegulatoryElementDetails-001] Regulatory element of crosswalk must have "
     "lanelet of crosswalk(refers).");
 }
 
@@ -66,7 +66,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, MultipleRefers)  // NOLINT fo
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::RegulatoryElement);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-002] Regulatory element of crosswalk must have "
+    "[Crosswalk.RegulatoryElementDetails-002] Regulatory element of crosswalk must have "
     "only one lanelet of crosswalk(refers).");
 }
 
@@ -83,7 +83,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, MissingRefLine)  // NOLINT fo
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::RegulatoryElement);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-003] Regulatory element of crosswalk does not "
+    "[Crosswalk.RegulatoryElementDetails-003] Regulatory element of crosswalk does not "
     "have stop line(ref_line).");
 }
 
@@ -100,7 +100,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, MissingPolygon)  // NOLINT fo
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::RegulatoryElement);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-004] Regulatory element of crosswalk is nice to "
+    "[Crosswalk.RegulatoryElementDetails-004] Regulatory element of crosswalk is nice to "
     "have crosswalk_polygon.");
 }
 
@@ -117,7 +117,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, MultiplePolygon)  // NOLINT f
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::RegulatoryElement);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-005] Regulatory element of crosswalk must have "
+    "[Crosswalk.RegulatoryElementDetails-005] Regulatory element of crosswalk must have "
     "only one crosswalk_polygon.");
 }
 
@@ -134,7 +134,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, WrongRefersType)  // NOLINT f
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::Lanelet);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-006] Refers of crosswalk regulatory element must "
+    "[Crosswalk.RegulatoryElementDetails-006] Refers of crosswalk regulatory element must "
     "have type of crosswalk.");
 }
 
@@ -151,7 +151,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, WrongRefLineType)  // NOLINT 
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::LineString);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-007] ref_line of crosswalk regulatory element "
+    "[Crosswalk.RegulatoryElementDetails-007] ref_line of crosswalk regulatory element "
     "must have type of stopline.");
 }
 
@@ -168,7 +168,7 @@ TEST_F(TestRegulatoryElementsDetailsForCrosswalks, WrongPolygonType)  // NOLINT 
   EXPECT_EQ(issues[0].primitive, lanelet::validation::Primitive::Polygon);
   EXPECT_EQ(
     issues[0].message,
-    "[Mapping.Crosswalk.RegulatoryElementDetails-008] Crosswalk polygon of crosswalk regulatory "
+    "[Crosswalk.RegulatoryElementDetails-008] Crosswalk polygon of crosswalk regulatory "
     "element must have type of Crosswalk_polygon.");
 }
 

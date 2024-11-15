@@ -40,13 +40,17 @@ std::string issue_code(const std::string & name, const int number)
     throw std::out_of_range("Number for issue code must be between 0 and 999 inclusive.");
   }
 
+  // Set three digits number string
   std::string id_num = std::to_string(number);
-
   while (id_num.length() < 3) {
     id_num = "0" + id_num;
   }
 
-  return snake_to_upper_camel(name) + '-' + id_num;
+  // Remove the first word from name
+  size_t pos = name.find('.');
+  std::string name_without_prefix = name.substr(pos + 1);
+
+  return snake_to_upper_camel(name_without_prefix) + '-' + id_num;
 }
 
 std::string issue_code_prefix(const std::string & name, const int number)
