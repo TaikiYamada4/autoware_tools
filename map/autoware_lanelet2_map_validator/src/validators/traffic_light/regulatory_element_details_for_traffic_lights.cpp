@@ -73,11 +73,6 @@ RegulatoryElementsDetailsForTrafficLightsValidator::checkRegulatoryElementOfTraf
     // Get stop line referred by regulatory element
     auto ref_lines = elem->getParameters<lanelet::ConstLineString3d>(lanelet::RoleName::RefLine);
 
-    if (refers.empty()) {
-      issues.emplace_back(
-        lanelet::validation::Severity::Error, lanelet::validation::Primitive::RegulatoryElement,
-        elem->id(), "Regulatory element of traffic light must have a traffic light(refers).");
-    }
     // TODO(sgk-000): Check correct behavior if regulatory element has two or more traffic light
     //  else if (refers.size() != 1) {
     //   issues.emplace_back(
