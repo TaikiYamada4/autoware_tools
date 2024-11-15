@@ -15,7 +15,6 @@
 #include "lanelet2_map_validator/utils.hpp"
 
 #include <string>
-
 std::string snake_to_upper_camel(const std::string & snake_case)
 {
   std::string camel_case;
@@ -24,10 +23,33 @@ std::string snake_to_upper_camel(const std::string & snake_case)
   for (char ch : snake_case) {
     if (ch == '_') {
       capitalize_next = true;
+    } else if (ch == '.') {
+      camel_case += ch;
+      capitalize_next = true;
     } else {
       camel_case += capitalize_next ? std::toupper(ch) : ch;
       capitalize_next = false;
     }
   }
   return camel_case;
+}
+
+std::string error_code(const std::string & name, const int number)
+{
+  if (number < 0 || number > 999) {
+    throw std::out_of_range("Number for error code must be between 0 and 999 inclusive.");
+  }
+
+  std::string id_num = std::to_string(number);
+
+  while (id_num.length() < 3) {
+    id_num = "0" + id_num;
+  }
+
+  return snake_to_upper_camel(name) + '-' + id_num;
+}
+
+std::string error_code_prefix(const std::string & name, const int number)
+{
+  return "[" + error_code(name, number) + "] ";
 }

@@ -81,5 +81,7 @@ void checkPrimitivesType(
 }  // namespace lanelet
 
 std::string snake_to_upper_camel(const std::string & snake_case);
+std::string error_code(const std::string & name, const int number);
+std::string error_code_prefix(const std::string & name, const int number);
 
 #endif  // LANELET2_MAP_VALIDATOR__UTILS_HPP_
