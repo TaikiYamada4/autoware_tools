@@ -34,10 +34,10 @@ std::string snake_to_upper_camel(const std::string & snake_case)
   return camel_case;
 }
 
-std::string error_code(const std::string & name, const int number)
+std::string issue_code(const std::string & name, const int number)
 {
   if (number < 0 || number > 999) {
-    throw std::out_of_range("Number for error code must be between 0 and 999 inclusive.");
+    throw std::out_of_range("Number for issue code must be between 0 and 999 inclusive.");
   }
 
   std::string id_num = std::to_string(number);
@@ -49,7 +49,7 @@ std::string error_code(const std::string & name, const int number)
   return snake_to_upper_camel(name) + '-' + id_num;
 }
 
-std::string error_code_prefix(const std::string & name, const int number)
+std::string issue_code_prefix(const std::string & name, const int number)
 {
-  return "[" + error_code(name, number) + "] ";
+  return "[" + issue_code(name, number) + "] ";
 }

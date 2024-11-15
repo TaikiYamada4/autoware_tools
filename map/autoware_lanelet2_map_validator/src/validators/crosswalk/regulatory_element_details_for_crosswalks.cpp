@@ -68,14 +68,14 @@ RegulatoryElementsDetailsForCrosswalksValidator::checkRegulatoryElementOfCrosswa
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::RegulatoryElement,
         elem->id(),
-        error_code_prefix(this->name(), 1) +
+        issue_code_prefix(this->name(), 1) +
           "Regulatory element of crosswalk must have lanelet of crosswalk(refers).");
     } else if (refers.size() > 1) {  // Report error if regulatory element has two or more lanelet
                                      // of crosswalk
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::RegulatoryElement,
         elem->id(),
-        error_code_prefix(this->name(), 2) +
+        issue_code_prefix(this->name(), 2) +
           "Regulatory element of crosswalk must have only one lanelet of crosswalk(refers).");
     }
     // Report Info if regulatory element does not have stop line
@@ -83,7 +83,7 @@ RegulatoryElementsDetailsForCrosswalksValidator::checkRegulatoryElementOfCrosswa
       issues.emplace_back(
         lanelet::validation::Severity::Info, lanelet::validation::Primitive::RegulatoryElement,
         elem->id(),
-        error_code_prefix(this->name(), 3) +
+        issue_code_prefix(this->name(), 3) +
           "Regulatory element of crosswalk does not have stop line(ref_line).");
     }
     // Report warning if regulatory element does not have crosswalk polygon
@@ -91,14 +91,14 @@ RegulatoryElementsDetailsForCrosswalksValidator::checkRegulatoryElementOfCrosswa
       issues.emplace_back(
         lanelet::validation::Severity::Warning, lanelet::validation::Primitive::RegulatoryElement,
         elem->id(),
-        error_code_prefix(this->name(), 4) +
+        issue_code_prefix(this->name(), 4) +
           "Regulatory element of crosswalk is nice to have crosswalk_polygon.");
     } else if (crosswalk_polygons.size() > 1) {  // Report error if regulatory element has two or
                                                  // more crosswalk polygon
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::RegulatoryElement,
         elem->id(),
-        error_code_prefix(this->name(), 5) +
+        issue_code_prefix(this->name(), 5) +
           "Regulatory element of crosswalk must have only one crosswalk_polygon.");
     }
 
@@ -107,7 +107,7 @@ RegulatoryElementsDetailsForCrosswalksValidator::checkRegulatoryElementOfCrosswa
     const auto & issue_cw = lanelet::validation::Issue(
       lanelet::validation::Severity::Error, lanelet::validation::Primitive::Lanelet,
       lanelet::utils::getId(),
-      error_code_prefix(this->name(), 6) +
+      issue_code_prefix(this->name(), 6) +
         "Refers of crosswalk regulatory element must have type of crosswalk.");
     lanelet::autoware::validation::checkPrimitivesType(
       refers, lanelet::AttributeValueString::Lanelet, lanelet::AttributeValueString::Crosswalk,
@@ -118,7 +118,7 @@ RegulatoryElementsDetailsForCrosswalksValidator::checkRegulatoryElementOfCrosswa
     const auto & issue_sl = lanelet::validation::Issue(
       lanelet::validation::Severity::Error, lanelet::validation::Primitive::LineString,
       lanelet::utils::getId(),
-      error_code_prefix(this->name(), 7) +
+      issue_code_prefix(this->name(), 7) +
         "ref_line of crosswalk regulatory element must have type of stopline.");
     lanelet::autoware::validation::checkPrimitivesType(
       ref_lines, lanelet::AttributeValueString::StopLine, issue_sl, issues);
@@ -128,7 +128,7 @@ RegulatoryElementsDetailsForCrosswalksValidator::checkRegulatoryElementOfCrosswa
     const auto & issue_poly = lanelet::validation::Issue(
       lanelet::validation::Severity::Error, lanelet::validation::Primitive::Polygon,
       lanelet::utils::getId(),
-      error_code_prefix(this->name(), 8) +
+      issue_code_prefix(this->name(), 8) +
         "Crosswalk polygon of crosswalk regulatory element must have type of Crosswalk_polygon.");
     lanelet::autoware::validation::checkPrimitivesType(
       crosswalk_polygons, lanelet::autoware::Crosswalk::AutowareRoleNameString::CrosswalkPolygon,
