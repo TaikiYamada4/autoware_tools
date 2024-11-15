@@ -85,7 +85,7 @@ MissingRegulatoryElementsForCrosswalksValidator::checkMissingRegulatoryElementsF
     if (cw_ids_reg_elem.find(cw_id) == cw_ids_reg_elem.end()) {
       issues.emplace_back(
         lanelet::validation::Severity::Error, lanelet::validation::Primitive::Lanelet, cw_id,
-        "No regulatory element refers to this crosswalk.");
+        error_code_prefix(this->name(), 1) + "No regulatory element refers to this crosswalk.");
     }
   }
 
