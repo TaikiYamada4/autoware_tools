@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <map>
 #include <queue>
+#include <regex>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -333,6 +334,7 @@ lanelet::validation::ValidationConfig replace_validator(
 void process_requirements(json json_data, const MetaConfig & validator_config)
 {
   std::vector<lanelet::validation::DetectedIssues> issues;
+  std::regex issue_code_pattern(R"(\[(.+?)\]\s*(.+))");
 
   // List up validators in order
   Validators validators = parse_validators(json_data);
@@ -380,11 +382,18 @@ void process_requirements(json json_data, const MetaConfig & validator_config)
     if (temp_issues[0].issues.size() > 0) {
       json issues_json;
       for (const auto & issue : temp_issues[0].issues) {
+        std::smatch matches;
         json issue_json;
         issue_json["severity"] = lanelet::validation::toString(issue.severity);
         issue_json["primitive"] = lanelet::validation::toString(issue.primitive);
         issue_json["id"] = issue.id;
-        issue_json["message"] = issue.message;
+        if (std::regex_match(issue.message, matches, issue_code_pattern)) {
+          issue_json["issue-code"] = matches[1];
+          issue_json["message"] = matches[2];
+        } else {
+          // Issue messages not matching the issue code format will be output as it is
+          issue_json["message"] = issue.message;
+        }
         issues_json.push_back(issue_json);
 
         if (
