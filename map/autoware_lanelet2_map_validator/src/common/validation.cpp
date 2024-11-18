@@ -205,7 +205,7 @@ std::vector<lanelet::validation::DetectedIssues> describe_unused_validators_to_j
     issue_json["primitive"] =
       lanelet::validation::toString(lanelet::validation::Primitive::Primitive);
     issue_json["id"] = 0;
-    issue_json["issue-code"] = "General.InvalidPrerequisites-001";
+    issue_json["issue_code"] = "General.InvalidPrerequisites-001";
     issue_json["message"] = "Prerequisites don't exist OR they are making a loop.";
     issues_json.push_back(issue_json);
     validator_json["issues"] = issues_json;
@@ -389,7 +389,7 @@ void process_requirements(json json_data, const MetaConfig & validator_config)
         issue_json["primitive"] = lanelet::validation::toString(issue.primitive);
         issue_json["id"] = issue.id;
         if (std::regex_match(issue.message, matches, issue_code_pattern)) {
-          issue_json["issue-code"] = matches[1];
+          issue_json["issue_code"] = matches[1];
           issue_json["message"] = matches[2];
         } else {
           // Issue messages not matching the issue code format will be output as it is
