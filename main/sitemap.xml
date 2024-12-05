@@ -146,12 +146,22 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://autowarefoundation.github.io/autoware_tools/main/map/autoware_lanelet2_map_validator/docs/traffic_light/missing_referrers_for_traffic_lights/</loc>
+         <lastmod>2024-12-05</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://autowarefoundation.github.io/autoware_tools/main/map/autoware_lanelet2_map_validator/docs/traffic_light/missing_regulatory_elements_for_traffic_lights/</loc>
          <lastmod>2024-12-05</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://autowarefoundation.github.io/autoware_tools/main/map/autoware_lanelet2_map_validator/docs/traffic_light/regulatory_element_details_for_traffic_lights/</loc>
+         <lastmod>2024-12-05</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://autowarefoundation.github.io/autoware_tools/main/map/autoware_lanelet2_map_validator/docs/traffic_light/traffic_light_facing/</loc>
          <lastmod>2024-12-05</lastmod>
          <changefreq>daily</changefreq>
     </url>
