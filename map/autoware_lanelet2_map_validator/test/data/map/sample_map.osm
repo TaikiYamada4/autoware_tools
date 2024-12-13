@@ -3850,6 +3850,14 @@
     <tag k="subtype" v="solid"/>
     <tag k="width" v="0.200"/>
   </way>
+  <way id="197">
+    <nd ref="1890"/>
+    <nd ref="5966"/>
+    <nd ref="5965"/>
+    <nd ref="1994"/>
+    <nd ref="1995"/>
+    <tag k="type" v="virtual"/>
+  </way>
   <way id="199">
     <nd ref="1890"/>
     <nd ref="5966"/>
@@ -5396,6 +5404,19 @@
     <tag k="location" v="urban"/>
     <tag k="one_way" v="yes"/>
     <tag k="turn_direction" v="left"/>
+  </relation>
+  <relation id="49">
+    <member type="way" role="left" ref="197"/>
+    <member type="way" role="right" ref="204"/>
+    <member type="relation" role="regulatory_element" ref="1012"/>
+    <member type="relation" role="regulatory_element" ref="10334"/>
+    <member type="relation" role="regulatory_element" ref="10353"/>
+    <tag k="type" v="lanelet"/>
+    <tag k="subtype" v="road"/>
+    <tag k="speed_limit" v="30"/>
+    <tag k="location" v="urban"/>
+    <tag k="one_way" v="yes"/>
+    <tag k="turn_direction" v="straight"/>
   </relation>
   <relation id="50">
     <member type="way" role="left" ref="199"/>
