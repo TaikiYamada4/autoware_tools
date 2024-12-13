@@ -20,7 +20,7 @@
 
 namespace lanelet::autoware::validation
 {
-class TurnDirectionTaggingValidator : public lanelet::validation::MapValidator
+class IntersectionTurnDirectionTaggingValidator : public lanelet::validation::MapValidator
 {
 public:
   constexpr static const char * name() { return "mapping.intersection.turn_direction_tagging"; }

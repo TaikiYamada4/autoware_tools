@@ -30,10 +30,10 @@ namespace lanelet::autoware::validation
 {
 namespace
 {
-lanelet::validation::RegisterMapValidator<TurnDirectionTaggingValidator> reg;
+lanelet::validation::RegisterMapValidator<IntersectionTurnDirectionTaggingValidator> reg;
 }
 
-lanelet::validation::Issues TurnDirectionTaggingValidator::operator()(
+lanelet::validation::Issues IntersectionTurnDirectionTaggingValidator::operator()(
   const lanelet::LaneletMap & map)
 {
   lanelet::validation::Issues issues;
@@ -43,7 +43,7 @@ lanelet::validation::Issues TurnDirectionTaggingValidator::operator()(
   return issues;
 }
 
-lanelet::validation::Issues TurnDirectionTaggingValidator::checkTurnDirectionTagging(
+lanelet::validation::Issues IntersectionTurnDirectionTaggingValidator::checkTurnDirectionTagging(
   const lanelet::LaneletMap & map)
 {
   lanelet::validation::Issues issues;
@@ -70,7 +70,8 @@ lanelet::validation::Issues TurnDirectionTaggingValidator::checkTurnDirectionTag
         issues.emplace_back(
           lanelet::validation::Severity::Error, lanelet::validation::Primitive::Lanelet, lane.id(),
           append_issue_code_prefix(
-            this->name(), 1, "This lanelet is missing a turn_direction tag"));
+            this->name(), 1, "This lanelet is missing a turn_direction tag."));
+        continue;
       }
 
       std::string turn_direction = lane.attribute("turn_direction").value();
@@ -78,7 +79,7 @@ lanelet::validation::Issues TurnDirectionTaggingValidator::checkTurnDirectionTag
         issues.emplace_back(
           lanelet::validation::Severity::Error, lanelet::validation::Primitive::Lanelet, lane.id(),
           append_issue_code_prefix(
-            this->name(), 2, "Invalid turn_directin tag is found (" + turn_direction + ")"));
+            this->name(), 2, "Invalid turn_direction tag \"" + turn_direction + "\" is found."));
       }
     }
   }
@@ -86,16 +87,16 @@ lanelet::validation::Issues TurnDirectionTaggingValidator::checkTurnDirectionTag
   return issues;
 }
 
-bool TurnDirectionTaggingValidator::lanelet_is_within_bbox_2d(
+bool IntersectionTurnDirectionTaggingValidator::lanelet_is_within_bbox_2d(
   const lanelet::BoundingBox2d bbox, const lanelet::ConstLanelet lanelet)
 {
   for (const auto & left_point : lanelet.leftBound2d()) {
-    if (bbox.contains(left_point.basicPoint2d())) {
+    if (!bbox.contains(left_point.basicPoint2d())) {
       return false;
     }
   }
   for (const auto & right_point : lanelet.rightBound2d()) {
-    if (bbox.contains(right_point.basicPoint2d())) {
+    if (!bbox.contains(right_point.basicPoint2d())) {
       return false;
     }
   }
